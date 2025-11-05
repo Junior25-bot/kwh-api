@@ -1,37 +1,43 @@
 # ⚡ KWH-API
 
-API REST desarrollada con Spring Boot para calcular el consumo eléctrico en kilovatios por hora (kWh).  
-Incluye autenticación, conexión a base de datos MySQL, y endpoints para registrar y consultar mediciones.
+API REST desarrollada con **Spring Boot** para calcular el **consumo eléctrico en kilovatios-hora (kWh)**.  
+Permite registrar dispositivos eléctricos, calcular su consumo y estimar el uso energético total.  
+El proyecto está containerizado con **Docker** y conectado a una base de datos **MySQL**.
 
 ---
 
-## 🚀 Tecnologías usadas
+## Tecnologías usadas
 
-- Java 21
-- Spring Boot
-- Spring Security
-- Spring Data JPA
-- MySQL
-- Maven
-- JWT (próximamente)
-- Lombok
-
----
-
-## 📦 Instalación y configuración
-
-### 🔧 Requisitos previos
-
-- Java 21
-- Maven
-- MySQL (puedes usar XAMPP o instalarlo directamente)
-- IDE como VS Code o IntelliJ
+- Java 21  
+- Spring Boot 3.x  
+- Spring Security (en progreso)  
+- Spring Data JPA  
+- MySQL  
+- Docker + Docker Compose  
+- Maven  
+- Lombok  
 
 ---
 
-### 🛠️ Pasos para levantar el proyecto
+##  Instalación y configuración
 
-1. Clona el repositorio:
+###  Requisitos previos
 
-```bash
-git clone https://github.com/Junior25-bot/kwh-api.git
+Asegúrate de tener instalados:
+
+- [Java 21](https://adoptium.net/)
+- [Maven](https://maven.apache.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/)
+- IDE como **IntelliJ IDEA** o **VS Code**
+
+---
+
+###  Pasos para levantar el proyecto
+
+1. **Clonar el repositorio**
+
+   ```bash
+   git clone https://github.com/Junior25-bot/kwh-api.git
+   cd kwh-api
+
