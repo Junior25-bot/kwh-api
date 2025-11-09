@@ -13,7 +13,7 @@ public class SecurityConfig {
     http
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/api/ping").permitAll() // esta ruta será pública
+        .requestMatchers("/api/ping", "/api/consumo/calcular", "/api/consumo/historial").permitAll() // estas rutas serán públicas
         .anyRequest().authenticated()             // el resto estará protegido
       );
     return http.build();

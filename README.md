@@ -1,4 +1,4 @@
-# ⚡ KWH-API
+# KWH-API
 
 API REST desarrollada con **Spring Boot** para calcular el **consumo eléctrico en kilovatios-hora (kWh)**.  
 Permite registrar dispositivos eléctricos, calcular su consumo y estimar el uso energético total.  
