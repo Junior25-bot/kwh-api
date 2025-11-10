@@ -8,14 +8,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-      .csrf(csrf -> csrf.disable())
-      .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/api/ping", "/api/consumo/calcular", "/api/consumo/historial").permitAll() // estas rutas serán públicas
-        .anyRequest().authenticated()             // el resto estará protegido
-      );
-    return http.build();
-  }
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable()) // desactiva CSRF
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // permite todos los endpoints
+        return http.build();
+    }
 }

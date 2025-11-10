@@ -1,12 +1,13 @@
 package com.kwh.kwhapi.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.kwh.kwhapi.model.Consumo;
-import com.kwh.kwhapi.repository.ConsumoRepository;
 
-import java.time.LocalDate;
-import java.util.List; // Import necesario para el nuevo método
+import com.kwh.kwhapi.model.Consumo;
+import com.kwh.kwhapi.repository.ConsumoRepository; // Import necesario para el nuevo método
 
 @Service
 public class ConsumoService {
