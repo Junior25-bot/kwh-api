@@ -20,6 +20,7 @@ public class ConsumoController {
     @Autowired
     private ConsumoService consumoService;
 
+    //metodo para calcular el consumo
     @PostMapping("/calcular")
     public ResponseEntity<?> calcular(@RequestBody Consumo datos) {
         try {
