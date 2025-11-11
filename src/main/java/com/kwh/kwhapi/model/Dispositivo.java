@@ -4,8 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "dispositivo")
 public class Dispositivo {
 
     @Id
@@ -16,7 +18,14 @@ public class Dispositivo {
     private double potencia;  // Potencia en kW
     private String categoria; // Ejemplo: "Iluminación", "Cocina", "Climatización"
 
-    // Getters y setters
+    public Dispositivo() {}
+
+    public Dispositivo(String nombre, double potencia, String categoria) {
+        this.nombre = nombre;
+        this.potencia = potencia;
+        this.categoria = categoria;
+    }
+
     public Long getId() {
         return id;
     }
@@ -45,15 +54,8 @@ public class Dispositivo {
         this.categoria = categoria;
     }
 
-    // Constructor vacío (ya lo tienes implícitamente)
-public Dispositivo() {}
-
-// Constructor con parámetros
-public Dispositivo(String nombre, double potencia, String categoria) {
-    this.nombre = nombre;
-    this.potencia = potencia;
-    this.categoria = categoria;
+    @Override
+    public String toString() {
+        return nombre;
+    }
 }
-
-}
-
