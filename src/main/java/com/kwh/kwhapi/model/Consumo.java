@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Consumo {
@@ -18,6 +20,11 @@ public class Consumo {
     private double tarifa;
     private double total;
     private LocalDate fecha;
+
+    // 🔹 Relación con Dispositivo (nuevo)
+    @ManyToOne
+    @JoinColumn(name = "dispositivo_id")
+    private Dispositivo dispositivo;
 
     // Getters y setters
     public Long getId() {
@@ -55,6 +62,13 @@ public class Consumo {
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
     }
+
+    // 🔹 Nuevo: getter y setter del dispositivo
+    public Dispositivo getDispositivo() {
+        return dispositivo;
+    }
+
+    public void setDispositivo(Dispositivo dispositivo) {
+        this.dispositivo = dispositivo;
+    }
 }
-
-
