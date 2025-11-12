@@ -7,7 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kwh.kwhapi.model.Consumo;
-import com.kwh.kwhapi.repository.ConsumoRepository; // Import necesario para el nuevo método
+import com.kwh.kwhapi.repository.ConsumoRepository;
+
 
 @Service
 public class ConsumoService {
@@ -15,22 +16,29 @@ public class ConsumoService {
     @Autowired
     private ConsumoRepository consumoRepository;
 
+    // Método para calcular y guardar
     public Consumo calcularYGuardar(Consumo datos) {
-        if (datos.getConsumo() < 0 || datos.getTarifa() < 0) {
-            throw new IllegalArgumentException("Consumo y tarifa deben ser positivos.");
+        if (datos.getConsumo() <= 0) {
+            throw new IllegalArgumentException("El consumo debe ser mayor a cero.");
         }
 
         double total = datos.getConsumo() * datos.getTarifa();
         datos.setTotal(total);
-        datos.setFecha(LocalDate.now());
+
         return consumoRepository.save(datos);
     }
 
-    // método para consultar el historial
+    // Método para obtener historial
     public List<Consumo> obtenerTodos() {
         return consumoRepository.findAll();
     }
+
+    public List<Consumo> obtenerPorFecha(LocalDate fecha) {
+    return consumoRepository.findByFecha(fecha);
 }
+
+}
+
 
 
 

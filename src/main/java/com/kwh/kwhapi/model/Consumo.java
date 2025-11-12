@@ -1,5 +1,6 @@
 package com.kwh.kwhapi.model;
 
+
 import java.time.LocalDate;
 
 import jakarta.persistence.Entity;
@@ -70,5 +71,5 @@ public class Consumo {
 
     public void setDispositivo(Dispositivo dispositivo) {
         this.dispositivo = dispositivo;
-    }
+}
 }
