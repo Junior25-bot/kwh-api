@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.kwh.kwhapi.model.Consumo;
 import com.kwh.kwhapi.model.Dispositivo;
+import com.kwh.kwhapi.model.Tarifa;
 import com.kwh.kwhapi.model.User;
 
 import jakarta.persistence.EntityManager;
@@ -19,29 +20,41 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class KwhApp extends Application {
 
-       private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("kwhPU");
-       private final EntityManager em = emf.createEntityManager();
+    private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("kwhPU");
+    private final EntityManager em = emf.createEntityManager();
 
     private ObservableList<Dispositivo> dispositivos;
     private final ObservableList<Consumo> consumos = FXCollections.observableArrayList();
-
-    private double precioKwh = 0.0; // Precio del kWh
+    private double precioKwh = 0.0;
+    private User usuarioActual = null;
 
     @Override
     public void start(Stage stage) {
-        loginStage(stage);
+        mostrarLogin(stage);
     }
 
-    private void loginStage(Stage stage) {
+    /** ================= LOGIN ================= **/
+    private void mostrarLogin(Stage stage) {
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
+
+        Label lblTitulo = new Label("Iniciar Sesión");
+        lblTitulo.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         TextField tfUser = new TextField();
         tfUser.setPromptText("Usuario");
@@ -50,8 +63,10 @@ public class KwhApp extends Application {
         pfPass.setPromptText("Contraseña");
 
         Button btnLogin = new Button("Iniciar sesión");
+        Button btnGoRegister = new Button("Registrarse");
 
         Label lblError = new Label();
+        lblError.setTextFill(Color.RED);
 
         btnLogin.setOnAction(e -> {
             if (validarUsuario(tfUser.getText(), pfPass.getText())) {
@@ -61,51 +76,137 @@ public class KwhApp extends Application {
             }
         });
 
-        root.getChildren().addAll(tfUser, pfPass, btnLogin, lblError);
+        btnGoRegister.setOnAction(e -> mostrarRegistro(stage));
 
-        stage.setScene(new Scene(root, 300, 200));
-        stage.setTitle("Login");
+        HBox botonesLoginBox = new HBox(10, btnLogin, btnGoRegister);
+        botonesLoginBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        root.getChildren().addAll(lblTitulo, tfUser, pfPass, botonesLoginBox, lblError);
+
+        stage.setScene(new Scene(root, 300, 250));
+        stage.setTitle("Login - KwhApp");
         stage.show();
     }
 
+    /** ================= REGISTRO ================= **/
+    private void mostrarRegistro(Stage stage) {
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(15));
+
+        Label lblTitulo = new Label("Registro de Usuario");
+        lblTitulo.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        TextField tfUser = new TextField();
+        tfUser.setPromptText("Nuevo usuario");
+
+        PasswordField pfPass = new PasswordField();
+        pfPass.setPromptText("Contraseña");
+
+        Button btnRegistrar = new Button("Registrar");
+        Button btnVolver = new Button("Volver al login");
+
+        Label lblMsg = new Label();
+
+        btnRegistrar.setOnAction(e -> {
+            if (tfUser.getText().isEmpty() || pfPass.getText().isEmpty()) {
+                lblMsg.setText("Por favor, completa todos los campos.");
+                lblMsg.setTextFill(Color.RED);
+                return;
+            }
+
+            if (usuarioExiste(tfUser.getText())) {
+                lblMsg.setText("El usuario ya existe.");
+                lblMsg.setTextFill(Color.RED);
+                return;
+            }
+
+            registrarUsuario(tfUser.getText(), pfPass.getText());
+            lblMsg.setText("Usuario registrado exitosamente. Ahora inicia sesión.");
+            lblMsg.setTextFill(Color.GREEN);
+        });
+
+        btnVolver.setOnAction(e -> mostrarLogin(stage));
+
+        HBox botonesRegistroBox = new HBox(10, btnRegistrar, btnVolver);
+        botonesRegistroBox.setAlignment(javafx.geometry.Pos.CENTER);
+        root.getChildren().addAll(lblTitulo, tfUser, pfPass, botonesRegistroBox, lblMsg);
+
+        stage.setScene(new Scene(root, 300, 250));
+        stage.setTitle("Registro");
+        stage.show();
+    }
+
+    /** ================= PANTALLA PRINCIPAL ================= **/
     private void mainStage(Stage stage) {
         VBox root = new VBox(15);
         root.setPadding(new Insets(10));
+
+        Label lblBienvenida = new Label("Bienvenido, " + usuarioActual.getUsername());
+        lblBienvenida.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        Button btnLogout = new Button("Cerrar sesión");
+        btnLogout.setOnAction(e -> {
+            usuarioActual = null;
+            mostrarLogin(stage);
+        });
+
 
         // === Mensaje de ahorro energético ===
         Label lblMensaje = new Label("Recuerda: ahorrar energía contribuye a un planeta más sostenible y reduce tus gastos.");
         lblMensaje.setTextFill(Color.DARKGREEN);
 
-        // === Sección 1: Configurar Precio del KWh ===
-        Label lblPrecio = new Label("Precio del KWh:");
-        TextField tfPrecioKwh = new TextField();
-        tfPrecioKwh.setPromptText("Ejemplo: 500");
-        Button btnSetPrecio = new Button("Establecer precio");
-        Label lblPrecioActual = new Label("Precio actual: no definido");
+        ComboBox<Tarifa> cbTarifa = new ComboBox<>();
+cbTarifa.setPromptText("Selecciona una tarifa existente");
 
-        btnSetPrecio.setOnAction(e -> {
-            try {
-                precioKwh = Double.parseDouble(tfPrecioKwh.getText());
-                lblPrecioActual.setText("Precio actual: $" + precioKwh + " por KWh");
-            } catch (NumberFormatException ex) {
-                new Alert(Alert.AlertType.ERROR, "Ingresa un número válido para el precio del KWh.").show();
-            }
-        });
+TextField tfPrecioKwh = new TextField();
+tfPrecioKwh.setPromptText("O ingresa un precio manual");
 
-        HBox precioBox = new HBox(10, lblPrecio, tfPrecioKwh, btnSetPrecio, lblPrecioActual);
+Button btnSetPrecio = new Button("Aplicar precio");
+Label lblPrecioActual = new Label("Precio actual: no definido");
 
-        // === Sección 2: Agregar Dispositivo ===
+// Cargar tarifas desde la base de datos
+ObservableList<Tarifa> tarifas = FXCollections.observableArrayList(loadTarifas());
+cbTarifa.setItems(tarifas);
+
+// Mostrar nombre + valor
+cbTarifa.setConverter(new javafx.util.StringConverter<>() {
+    @Override
+    public String toString(Tarifa t) {
+        if (t == null) return "";
+        return t.getNombre() + " ($" + t.getValorUnitario() + ")";
+    }
+    @Override
+    public Tarifa fromString(String s) { return null; }
+});
+
+btnSetPrecio.setOnAction(e -> {
+    if (cbTarifa.getValue() != null) {
+        Tarifa seleccionada = cbTarifa.getValue();
+        precioKwh = seleccionada.getValorUnitario();
+        lblPrecioActual.setText("Tarifa seleccionada: " + seleccionada.getNombre() + " - $" + precioKwh + " por KWh");
+    } else {
+        try {
+            precioKwh = Double.parseDouble(tfPrecioKwh.getText());
+            lblPrecioActual.setText("Precio manual: $" + precioKwh + " por KWh");
+        } catch (NumberFormatException ex) {
+            new Alert(Alert.AlertType.ERROR, "Ingresa un número válido para el precio del KWh.").show();
+        }
+    }
+});
+
+HBox precioBox = new HBox(10, cbTarifa, tfPrecioKwh, btnSetPrecio, lblPrecioActual);
+
+
+        // === Agregar Dispositivo ===
         Label lblAddDisp = new Label("Agregar nuevo dispositivo:");
-
         TextField tfNombreDisp = new TextField();
         tfNombreDisp.setPromptText("Nombre del dispositivo");
-
         TextField tfPotencia = new TextField();
         tfPotencia.setPromptText("Potencia (kW)");
 
         ComboBox<String> cbCategoria = new ComboBox<>();
         cbCategoria.getItems().addAll(
-                "Iluminación", "Cocina", "Climatización", "Entretenimiento", 
+                "Iluminación", "Cocina", "Climatización", "Entretenimiento",
                 "Lavado", "Electrónica", "Limpieza", "Cuidado personal"
         );
         cbCategoria.setPromptText("Categoría");
@@ -144,33 +245,26 @@ public class KwhApp extends Application {
         HBox addDispBox = new HBox(10, tfNombreDisp, tfPotencia, cbCategoria, btnAgregarDisp);
         VBox seccionAgregar = new VBox(5, lblAddDisp, addDispBox);
 
-        // === Sección 3: Calcular consumo ===
+        // === Calcular consumo ===
         dispositivos = FXCollections.observableArrayList(loadDispositivos());
-
         ComboBox<Dispositivo> comboDispositivo = new ComboBox<>(dispositivos);
         comboDispositivo.setPromptText("Selecciona un dispositivo");
 
-        // Mostrar nombre y potencia
-        comboDispositivo.setConverter(new javafx.util.StringConverter<Dispositivo>() {
+        comboDispositivo.setConverter(new javafx.util.StringConverter<>() {
             @Override
             public String toString(Dispositivo d) {
                 if (d == null) return "";
                 return d.getNombre() + " (" + d.getPotencia() + " kW)";
             }
-
             @Override
-            public Dispositivo fromString(String string) {
-                return null;
-            }
+            public Dispositivo fromString(String s) { return null; }
         });
 
         TextField tfTiempo = new TextField();
         tfTiempo.setPromptText("Horas de uso");
-
         Button btnCalcular = new Button("Calcular consumo");
 
         TableView<Consumo> table = new TableView<>(consumos);
-
         TableColumn<Consumo, String> colDisp = new TableColumn<>("Dispositivo");
         colDisp.setCellValueFactory(data -> new SimpleStringProperty(
                 data.getValue().getDispositivo() != null ? data.getValue().getDispositivo().getNombre() : "N/A"));
@@ -220,14 +314,21 @@ public class KwhApp extends Application {
 
         VBox seccionCalculo = new VBox(10, comboDispositivo, tfTiempo, btnCalcular, table);
 
-        // === Estructura general ===
-        root.getChildren().addAll(lblMensaje, precioBox, seccionAgregar, seccionCalculo);
+    HBox topBar = new HBox(10);
+    topBar.setPadding(new Insets(5));
+    topBar.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+    topBar.setStyle("-fx-background-color: #f0f0f0; -fx-padding: 8;"); // opcional, solo para ver la barra
+    topBar.getChildren().addAll(lblBienvenida, btnLogout);
 
-        stage.setScene(new Scene(root, 800, 500));
+
+        root.getChildren().addAll(topBar, lblMensaje, precioBox, seccionAgregar, seccionCalculo);
+
+        stage.setScene(new Scene(root, 850, 550));
         stage.setTitle("Calculadora de Consumo Energético");
         stage.show();
     }
 
+    /** ================= MÉTODOS DE BASE DE DATOS ================= **/
     private boolean validarUsuario(String username, String password) {
         try {
             TypedQuery<User> query = em.createQuery(
@@ -235,10 +336,33 @@ public class KwhApp extends Application {
             query.setParameter("u", username);
             query.setParameter("p", password);
             List<User> result = query.getResultList();
-            return !result.isEmpty();
-        } catch (Exception e) {
-        }
+            if (!result.isEmpty()) {
+                usuarioActual = result.get(0);
+                return true;
+            }
+        } catch (Exception ignored) {}
         return false;
+    }
+
+    private boolean usuarioExiste(String username) {
+        List<User> result = em.createQuery("SELECT u FROM User u WHERE u.username = :u", User.class)
+                .setParameter("u", username)
+                .getResultList();
+        return !result.isEmpty();
+    }
+
+    private void registrarUsuario(String username, String password) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            User u = new User();
+            u.setUsername(username);
+            u.setPassword(password);
+            em.persist(u);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+        }
     }
 
     private List<Dispositivo> loadDispositivos() {
@@ -266,6 +390,15 @@ public class KwhApp extends Application {
             if (tx.isActive()) tx.rollback();
         }
     }
+
+    private List<Tarifa> loadTarifas() {
+    try {
+        return em.createQuery("SELECT t FROM Tarifa t", Tarifa.class).getResultList();
+    } catch (Exception e) {
+        return List.of();
+    }
+}
+
 
     @Override
     public void stop() {
