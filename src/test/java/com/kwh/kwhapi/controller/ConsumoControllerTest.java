@@ -3,14 +3,20 @@ package com.kwh.kwhapi.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kwh.kwhapi.model.Consumo;
 import com.kwh.kwhapi.model.Tarifa;
+
+
 import com.kwh.kwhapi.service.ConsumoService;
 import com.kwh.kwhapi.repository.TarifaRepository;
+import com.kwh.kwhapi.config.TestSecurityConfig;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
+import org.springframework.context.annotation.Import;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,14 +27,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ConsumoController.class)
+
 @AutoConfigureMockMvc(addFilters = false) // Desactiva filtros de seguridad
+
+@Import(TestSecurityConfig.class)
+
 public class ConsumoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockBean
     private ConsumoService consumoService;
@@ -36,31 +44,53 @@ public class ConsumoControllerTest {
     @MockBean
     private TarifaRepository tarifaRepository;
 
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     public void testCalcularConsumoEndpoint() throws Exception {
+
         // Entrada simulada
+        // Datos de entrada
+
         Consumo entrada = new Consumo();
         entrada.setConsumo(100.0);
 
         // Tarifa simulada
+
         Tarifa tarifaMock = new Tarifa();
         tarifaMock.setValorUnitario(0.5);
 
         // Salida esperada
+
+        Tarifa tarifa = new Tarifa();
+        tarifa.setValorUnitario(0.5);
+
+        // Simulamos el comportamiento del repositorio
+        Mockito.when(tarifaRepository.findTarifaVigente(Mockito.any(LocalDate.class)))
+                .thenReturn(tarifa);
+
+        // Respuesta simulada del servicio
+
         Consumo salida = new Consumo();
         salida.setConsumo(100.0);
         salida.setTarifa(0.5);
         salida.setTotal(50.0);
         salida.setFecha(LocalDate.now());
 
-        // Simulaciones
-        Mockito.when(tarifaRepository.findTarifaVigente(Mockito.any(LocalDate.class)))
-               .thenReturn(tarifaMock);
 
+        // Simulaciones
+Mockito.when(tarifaRepository.findTarifaVigente(Mockito.any(LocalDate.class)))
+               .thenReturn(tarifaMock);
         Mockito.when(consumoService.calcularYGuardar(Mockito.any(Consumo.class)))
                .thenReturn(salida);
 
         // Ejecución del endpoint
+ Mockito.when(consumoService.calcularYGuardar(Mockito.any(Consumo.class)))
+                .thenReturn(salida);
+
+        // Ejecutamos el POST
         mockMvc.perform(post("/api/consumo/calcular")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(entrada)))
