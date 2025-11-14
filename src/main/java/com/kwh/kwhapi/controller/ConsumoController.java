@@ -22,10 +22,11 @@ import com.kwh.kwhapi.service.ConsumoService;
 public class ConsumoController {
 
     @Autowired
-    private TarifaRepository tarifaRepository;
+private TarifaRepository tarifaRepository;
+
+
     @Autowired
 private ConsumoService consumoService;
-
 
 
     //metodo para calcular el consumo

@@ -1,3 +1,6 @@
+
+package com.kwh.kwhapi.model;
+
 public class ConsumoRequest {
     private double consumo;
 
